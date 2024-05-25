@@ -9,8 +9,8 @@ use std::{io, iter};
 use windows_sys::Win32::Foundation::{HANDLE, INVALID_HANDLE_VALUE};
 use windows_sys::Win32::Storage::FileSystem::{
     MoveFileExW, ReOpenFile, SetFileAttributesW, FILE_ATTRIBUTE_NORMAL, FILE_ATTRIBUTE_TEMPORARY,
-    FILE_FLAG_DELETE_ON_CLOSE, FILE_GENERIC_READ, FILE_GENERIC_WRITE, FILE_SHARE_DELETE,
-    FILE_SHARE_READ, FILE_SHARE_WRITE, MOVEFILE_REPLACE_EXISTING,
+    FILE_FLAG_DELETE_ON_CLOSE, FILE_GENERIC_READ, FILE_GENERIC_WRITE, MOVEFILE_WRITE_THROUGH,
+    FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, MOVEFILE_REPLACE_EXISTING,
 };
 
 use crate::util;
@@ -51,7 +51,7 @@ pub fn create(dir: &Path) -> io::Result<File> {
                 .create_new(true)
                 .read(true)
                 .write(true)
-                .share_mode(0)
+                .share_mode(FILE_SHARE_DELETE)
                 .custom_flags(FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE)
                 .open(path)
         },
@@ -97,7 +97,7 @@ pub fn persist(old_path: &Path, new_path: &Path, overwrite: bool) -> io::Result<
             return Err(io::Error::last_os_error());
         }
 
-        let mut flags = 0;
+        let mut flags = MOVEFILE_WRITE_THROUGH;
 
         if overwrite {
             flags |= MOVEFILE_REPLACE_EXISTING;
